@@ -1,7 +1,15 @@
+import React, { useState,useEffect } from "react";
 import "./App.css";
 import Post from "./Post";
-
+import { db } from './firebase';
 function App() {
+  const [posts, setPosts] = useState([]);
+  useEffect(()=>{
+    db.collection('posts').onSnapshot(snapshot => {
+      setPosts(snapshot.docs.map(doc => doc.data() ))
+    })
+
+  },[])
   return (
     <div className="app">
       <div className="app__header">
@@ -11,11 +19,16 @@ function App() {
           alt="instagram"
         ></img>
       </div>
+      {posts.map((post)=>(
+              <Post
+              username={post.username}
+              imageUrl={post.imageUrl}
+              caption={post.caption}
+            />
 
-      <Post username="nastykev" imageUrl="https://frontendmasters.com/static-assets/learn/og-learning-path-react.jpg" />
-      <Post />
-      <Post />
-      <Post />
+      ))}
+
+
 
       <p>instagram clone</p>
     </div>
