@@ -12,7 +12,11 @@ function App() {
         ></img>
       </div>
 
+      <Post username="nastykev" imageUrl="https://frontendmasters.com/static-assets/learn/og-learning-path-react.jpg" />
       <Post />
+      <Post />
+      <Post />
+
       <p>instagram clone</p>
     </div>
   );
