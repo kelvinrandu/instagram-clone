@@ -31,11 +31,36 @@ function App() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [user, setUser] = useState("");
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
 
+  useEffect(()=>{
+    const unsubscribe =auth.onAuthStateChanged((authUser) =>{
+      if (authUser){
+        console.log(authUser);
+        setUser(authUser);
+        if (authUser.displayName){
+  
+        }else{
+          return authUser.updateProfile({
+            displayName: username,
+          })
+  
+        }
+
+      }else{
+        setUser(null);
+
+      }
+    })
+    return ()=> {
+      unsubscribe();
+    }
+
+  }, [user,username])
   useEffect(() => {
     db.collection("posts").onSnapshot((snapshot) => {
       setPosts(
