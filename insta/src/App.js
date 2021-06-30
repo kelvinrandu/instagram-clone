@@ -31,36 +31,29 @@ function App() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [user, setUser] = useState("");
+  const [user, setUser] = useState(null);
+  const [openLogin, setOPenLogin] = useState(false);
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
 
-  useEffect(()=>{
-    const unsubscribe =auth.onAuthStateChanged((authUser) =>{
-      if (authUser){
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
         console.log(authUser);
         setUser(authUser);
-        if (authUser.displayName){
-  
-        }else{
-          return authUser.updateProfile({
-            displayName: username,
-          })
-  
-        }
-
-      }else{
+      } else {
         setUser(null);
-
       }
-    })
-    return ()=> {
-      unsubscribe();
-    }
+    });
 
-  }, [user,username])
+    return () => {
+      unsubscribe();
+    };
+  }, [user, username]);
+
   useEffect(() => {
     db.collection("posts").onSnapshot((snapshot) => {
       setPosts(
@@ -71,12 +64,33 @@ function App() {
       );
     });
   }, []);
-  const handleSignup = (e) => {
-    e.preventDefault();
-    auth.createUserWithEmailAndPassword(email,password)
-    .catch((error) => alert(error.message))
+  const handleSignup = (event) => {
 
-  };
+    // This is to prevent the page from refreshing when we submit the form
+    event.preventDefault();
+    auth.createUserWithEmailAndPassword(email, password)
+    .then((authUser) => {
+      return authUser.user.updateProfile({
+        displayName: username
+      })
+    })
+    .catch((error) => alert(error.message));
+
+    // Set user so that footer changes accordingly
+    
+
+    // Close modal
+    setOpen(false);
+  }
+  const handleLogin = (event) => {
+    event.preventDefault();
+    auth
+      .signInWithEmailAndPassword(email, password)
+      .catch((error) => alert(error.message));
+    
+    // Close modal
+    setOPenLogin(false);
+  }
   return (
     <div className="app">
       <Modal open={open} onClose={() => setOpen(false)}>
@@ -112,6 +126,33 @@ function App() {
           </form>
         </div>
       </Modal>
+      <Modal open={openLogin} onClose={() => setOPenLogin(false)}>
+        <div style={modalStyle} className={classes.paper}>
+          <form className="app__signup">
+            <center>
+              <img
+                className="app__header__image"
+                src="https://www.instagram.com/static/images/web/mobile_nav_type_logo.png/735145cfe0a4.png"
+                alt="instagram"
+              />
+            </center>
+
+            <Input
+              placeholder="email"
+              type="text"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              placeholder="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button type="submit" onClick={handleLogin}>sign in</Button>
+          </form>
+        </div>
+      </Modal>
       <div className="app__header">
         <img
           className="app__header__image"
@@ -119,7 +160,17 @@ function App() {
           alt="instagram"
         />
       </div>
-      <Button onClick={() => setOpen(true)}>sign up</Button>
+      {user ? (
+          <div className="app__logoutContainer">
+            <Button onClick={() => auth.signOut()}>Logout</Button>
+          </div>
+        ) : (
+          <div className="app__loginContainer">
+            <Button onClick={() => setOpen(true)}>Sign Up</Button>
+            <Button onClick={() => setOPenLogin(true)}>Sign In</Button>
+          </div>
+        )}
+   
       {posts.map(({ id, post }) => (
         <Post
           key={id}
